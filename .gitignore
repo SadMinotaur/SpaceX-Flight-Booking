@@ -1,0 +1,16 @@
+node_modules
+public/dist
+
+# yarn.lock
+
+.idea
+.vscode
+.env
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
