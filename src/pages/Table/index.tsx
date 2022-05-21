@@ -4,6 +4,6 @@ import styles from "./styles.module.scss";
 
 const cnb = classNames.bind(styles);
 
-export default function CardPage(): React.ReactElement {
-  return <div>test</div>;
+export default function Table(): React.ReactElement {
+  return <div className={styles.tableContainer}>test</div>;
 }

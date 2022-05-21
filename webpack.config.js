@@ -32,7 +32,7 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"],
     plugins: [PnpWebpackPlugin],
     fallback: {
-        util: require.resolve("util/")
+      util: require.resolve("util/")
     }
   },
   resolveLoader: {
