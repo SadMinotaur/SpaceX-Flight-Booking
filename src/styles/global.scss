@@ -1,1 +1,7 @@
 @import "reset.scss";
+
+#root {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-template-rows: min-content 1fr;
+}

@@ -1,16 +1,20 @@
+import { createTheme, ThemeProvider } from "@mui/material";
 import { store } from "@store/store";
 import React from "react";
 import { Provider } from "react-redux";
-import { HashRouter } from "react-router-dom";
 import MainRouter from "./routing/Routes";
 
 function App(): React.ReactElement {
   return (
     <React.StrictMode>
       <Provider store={store}>
-        <HashRouter basename={process.env.PUBLIC_URL}>
+        <ThemeProvider
+          theme={createTheme({
+            palette: {}
+          })}
+        >
           <MainRouter />
-        </HashRouter>
+        </ThemeProvider>
       </Provider>
     </React.StrictMode>
   );

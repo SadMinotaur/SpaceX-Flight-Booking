@@ -20,3 +20,4 @@ Based on https://github.com/Revolt9k/react-redux-template.
 - Hot reload
 - Analyzing bundle size tool
 
+yarn dlx @yarnpkg/sdks vscode

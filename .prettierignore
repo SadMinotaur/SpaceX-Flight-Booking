@@ -1,5 +1,5 @@
 # Ignore artifacts:
 build
 node_modules
-public
+public/dist
 .yarn

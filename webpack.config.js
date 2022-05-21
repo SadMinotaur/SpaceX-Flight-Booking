@@ -30,7 +30,10 @@ module.exports = {
       "@assets": path.resolve(__dirname, "assets/")
     },
     extensions: [".ts", ".tsx", ".js"],
-    plugins: [PnpWebpackPlugin]
+    plugins: [PnpWebpackPlugin],
+    fallback: {
+        util: require.resolve("util/")
+    }
   },
   resolveLoader: {
     plugins: [PnpWebpackPlugin.moduleLoader(module)]
