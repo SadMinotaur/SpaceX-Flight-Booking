@@ -15,14 +15,16 @@ interface Props {
   id: string;
   cardInfo?: LaunchType;
   disableDrag?: boolean;
+  style?: React.CSSProperties;
 }
 
-export default function TableCard({ id, cardInfo, disableDrag }: Props): React.ReactElement {
+export default function TableCard({ id, cardInfo, disableDrag, style }: Props): React.ReactElement {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id,
     disabled: disableDrag
   });
 
+  const showSkeleton = !!cardInfo;
   const convertDate = (): string => {
     if (!cardInfo) return "";
     return new Date(cardInfo.date_utc).toLocaleDateString("en", {
@@ -32,13 +34,12 @@ export default function TableCard({ id, cardInfo, disableDrag }: Props): React.R
     });
   };
 
-  const showSkeleton = !!cardInfo;
-
   return (
     <Card
       variant='outlined'
       className={cnb("cardWrapper")}
       sx={{
+        ...style,
         transform: CSS.Transform.toString(transform),
         transition
       }}
@@ -70,7 +71,7 @@ export default function TableCard({ id, cardInfo, disableDrag }: Props): React.R
       </CardContent>
       <CardActions className={cnb("alignRight")}>
         {showSkeleton ? (
-          <Button>Open</Button>
+          <Button color='secondary'>Open</Button>
         ) : (
           <Skeleton variant='rectangular' width={62} height={32} />
         )}

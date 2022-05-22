@@ -1,9 +1,11 @@
-import TableCard from "@components/card";
 import Column from "@components/column";
+import TableCard from "@components/table-card";
 import {
   closestCorners,
   DndContext,
+  DragEndEvent,
   DragOverlay,
+  DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -12,6 +14,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Typography } from "@mui/material";
 import { getLaunchesActionRequest } from "@store/launches/launchesActions";
+import { LaunchType } from "@store/launches/launchesTypes";
 import { RootState } from "@store/store";
 import classNames from "classnames/bind";
 import React from "react";
@@ -26,12 +29,17 @@ export default function Table(): React.ReactElement {
   const dispatch = useDispatch();
   const launches = useSelector((state: RootState) => state.launches);
 
-  const [items, setItems] = React.useState({
-    container1: ["1", "2", "3"],
-    container2: ["4", "5", "6"]
-    // container3: ["7", "8", "9"]
+  const [items, setItems] = React.useState<{
+    past: LaunchType[];
+    upcoming: LaunchType[];
+    booked: LaunchType[];
+  }>({
+    past: [],
+    upcoming: [],
+    booked: []
   });
-  const [activeId, setActiveId] = React.useState<string | null>(null);
+
+  const [activeId, setActiveId] = React.useState<number | string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -40,20 +48,16 @@ export default function Table(): React.ReactElement {
     })
   );
 
-  function findContainer(id: string) {
-    if (id in items) {
-      return id;
-    }
-    return Object.keys(items).find((key) => items[key].includes(id));
-  }
+  const findContainer = (id: string): string | undefined => {
+    if (id in items) return id;
+    return Object.keys(items).find((key) => items[key].find((item) => id === item.id));
+  };
 
-  function handleDragStart(event): void {
-    const { active } = event;
-    const { id } = active;
-    setActiveId(id);
-  }
+  const handleDragStart = (event: DragStartEvent): void => {
+    setActiveId(event.active.id);
+  };
 
-  function handleDragOver(event): void {
+  const handleDragOver = (event): void => {
     const { active, over, draggingRect } = event;
     const { id } = active;
     const { id: overId } = over;
@@ -63,8 +67,8 @@ export default function Table(): React.ReactElement {
     setItems((prev) => {
       const activeItems = prev[activeContainer];
       const overItems = prev[overContainer];
-      const activeIndex = activeItems.indexOf(id);
-      const overIndex = overItems.indexOf(overId);
+      const activeIndex = activeItems.find((item) => item.id === id)?.id;
+      const overIndex = overItems.find((item) => item.id === overId)?.id;
       let newIndex;
       if (overId in prev) {
         newIndex = overItems.length + 1;
@@ -78,35 +82,41 @@ export default function Table(): React.ReactElement {
       }
       return {
         ...prev,
-        [activeContainer]: [...prev[activeContainer].filter((item) => item !== active.id)],
+        [activeContainer]: [...prev[activeContainer].filter((item) => item.id !== active.id)],
         [overContainer]: [
           ...prev[overContainer].slice(0, newIndex),
-          items[activeContainer][activeIndex],
+          items[activeContainer].find((item) => item.id === activeIndex),
           ...prev[overContainer].slice(newIndex, prev[overContainer].length)
         ]
       };
     });
-  }
+  };
 
-  function handleDragEnd(event): void {
-    const { active, over } = event;
-    const activeContainer = findContainer(active?.id);
-    const overContainer = findContainer(over?.id);
+  const handleDragEnd = ({ active, over }: DragEndEvent): void => {
+    const activeContainer = findContainer(active?.id.toString());
+    const overContainer = findContainer(active?.id.toString());
     if (!activeContainer || !overContainer || activeContainer !== overContainer) return;
-    const activeIndex = items[activeContainer].indexOf(active?.id);
-    const overIndex = items[overContainer].indexOf(over?.id);
+    const activeIndex = items[activeContainer].findIndex((item) => item.id === active?.id);
+    const overIndex = items[overContainer].findIndex((item) => item.id === over?.id);
     if (activeIndex !== overIndex) {
-      setItems((staetItems) => ({
-        ...staetItems,
-        [overContainer]: arrayMove(staetItems[overContainer], activeIndex, overIndex)
+      setItems((stateItems) => ({
+        ...stateItems,
+        [overContainer]: arrayMove(stateItems[overContainer], activeIndex, overIndex)
       }));
     }
     setActiveId(null);
-  }
+  };
+
+  React.useEffect(() => {
+    setItems({
+      past: launches.past.slice(0, 5),
+      upcoming: launches.upcoming.slice(0, 5),
+      booked: launches.booked.slice(0, 5)
+    });
+  }, [launches.booked, launches.past, launches.upcoming]);
 
   React.useEffect(() => {
     dispatch(getLaunchesActionRequest());
-    return () => {};
   }, [dispatch]);
 
   return (
@@ -133,12 +143,11 @@ export default function Table(): React.ReactElement {
             My launches
           </Typography>
         </div>
-        {/* {Object.keys(items).map((group) => (
-          <Column id={group} items={items[group]} key={group} />
-        ))} */}
-        <Column id='test' items={launches.upcoming} key='test' showSkeletons={launches.loader} />
+        {Object.keys(items).map((group) => (
+          <Column id={group} items={items[group]} key={group} showSkeletons={launches.loader} />
+        ))}
       </div>
-      <DragOverlay>{activeId ? <TableCard id={activeId} /> : null}</DragOverlay>
+      <DragOverlay>{activeId ? <TableCard id={activeId.toString()} /> : null}</DragOverlay>
     </DndContext>
   );
 }
