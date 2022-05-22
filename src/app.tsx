@@ -10,7 +10,12 @@ function App(): React.ReactElement {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ width: "100%", height: "100vh", bgcolor: "background.default" }}>
+      <Box
+        className='boxStyle'
+        sx={{
+          bgcolor: "background.default"
+        }}
+      >
         <MainRouter />
       </Box>
     </ThemeProvider>
