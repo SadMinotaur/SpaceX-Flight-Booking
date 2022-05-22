@@ -1,10 +1,10 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Button from "@mui/material/Button";
+import { Button, CardMedia, Skeleton, Typography } from "@mui/material";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
-import Typography from "@mui/material/Typography";
+import { LaunchType } from "@store/launches/launchesTypes";
 import classNames from "classnames/bind";
 import React from "react";
 import styles from "./styles.module.scss";
@@ -13,12 +13,26 @@ const cnb = classNames.bind(styles);
 
 interface Props {
   id: string;
+  cardInfo?: LaunchType;
+  disableDrag?: boolean;
 }
 
-export default function TableCard({ id }: Props): React.ReactElement {
+export default function TableCard({ id, cardInfo, disableDrag }: Props): React.ReactElement {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
-    id
+    id,
+    disabled: disableDrag
   });
+
+  const convertDate = (): string => {
+    if (!cardInfo) return "";
+    return new Date(cardInfo.date_utc).toLocaleDateString("en", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
+  const showSkeleton = !!cardInfo;
 
   return (
     <Card
@@ -32,20 +46,34 @@ export default function TableCard({ id }: Props): React.ReactElement {
       {...attributes}
       {...listeners}
     >
+      {showSkeleton ? (
+        <CardMedia
+          component='img'
+          height='140'
+          image={cardInfo.links.patch.small || "https://via.placeholder.com/140x370"}
+          alt='flight patch'
+        />
+      ) : (
+        <Skeleton variant='rectangular' width='100%' height={140} />
+      )}
       <CardContent>
-        <Typography sx={{ fontSize: 14 }} color='text.secondary' gutterBottom>
-          Word of the Day
-        </Typography>
-        <Typography variant='h5' component='div'>
-          be
-        </Typography>
-        <Typography sx={{ mb: 1.5 }} color='text.secondary'>
-          adjective
-        </Typography>
-        <Typography variant='body2'>well meaning and kindly.</Typography>
+        {showSkeleton ? (
+          <Typography variant='h4'>{cardInfo?.name}</Typography>
+        ) : (
+          <Skeleton variant='text' height={40} />
+        )}
+        {showSkeleton ? (
+          <Typography variant='h6'>Date: {convertDate()}</Typography>
+        ) : (
+          <Skeleton variant='text' height={32} />
+        )}
       </CardContent>
-      <CardActions>
-        <Button size='small'>Learn More</Button>
+      <CardActions className={cnb("alignRight")}>
+        {showSkeleton ? (
+          <Button>Open</Button>
+        ) : (
+          <Skeleton variant='rectangular' width={62} height={32} />
+        )}
       </CardActions>
     </Card>
   );

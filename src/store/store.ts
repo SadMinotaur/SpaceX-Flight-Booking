@@ -1,14 +1,14 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import createSagaMiddleware, { SagaMiddleware } from "redux-saga";
 import rootSaga from "./rootSaga";
-import user from "./user/userRedusers";
+import launches from "./launches/lanchesRedusers";
 import theme from "./theme";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 const reducer = combineReducers({
-  user,
-  theme
+  theme,
+  launches
 });
 
 export type RootState = ReturnType<typeof reducer>;

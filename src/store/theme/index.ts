@@ -8,7 +8,7 @@ export enum AppThemes {
 const initialState = AppThemes.light;
 
 const theme = createSlice({
-  name: "counter",
+  name: "theme",
   initialState,
   reducers: {
     setAppTheme(_, action: PayloadAction<AppThemes>) {

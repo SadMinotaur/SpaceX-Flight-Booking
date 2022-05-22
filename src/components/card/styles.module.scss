@@ -1,2 +1,7 @@
 .cardWrapper {
+  user-select: none;
+
+  .alignRight {
+    justify-content: end;
+  }
 }

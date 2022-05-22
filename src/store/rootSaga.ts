@@ -1,6 +1,6 @@
 import { all } from "redux-saga/effects";
-import watchOnUserChange from "./user/userSagas";
+import watchOnLaunchesChange from "./launches/launchesSagas";
 
 export default function* rootSaga(): Generator {
-  yield all([watchOnUserChange()]);
+  yield all([watchOnLaunchesChange()]);
 }

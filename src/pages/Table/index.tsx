@@ -11,8 +11,11 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Typography } from "@mui/material";
+import { getLaunchesActionRequest } from "@store/launches/launchesActions";
+import { RootState } from "@store/store";
 import classNames from "classnames/bind";
 import React from "react";
+import { useDispatch, useSelector } from "react-redux";
 import styles from "./styles.module.scss";
 
 const cnb = classNames.bind(styles);
@@ -20,10 +23,13 @@ const cnb = classNames.bind(styles);
 const typoStyles = { color: "text.primary", textTransform: "uppercase" } as const;
 
 export default function Table(): React.ReactElement {
+  const dispatch = useDispatch();
+  const launches = useSelector((state: RootState) => state.launches);
+
   const [items, setItems] = React.useState({
     container1: ["1", "2", "3"],
-    container2: ["4", "5", "6"],
-    container3: ["7", "8", "9"]
+    container2: ["4", "5", "6"]
+    // container3: ["7", "8", "9"]
   });
   const [activeId, setActiveId] = React.useState<string | null>(null);
 
@@ -84,13 +90,11 @@ export default function Table(): React.ReactElement {
 
   function handleDragEnd(event): void {
     const { active, over } = event;
-    const { id } = active;
-    const { id: overId } = over;
-    const activeContainer = findContainer(id);
-    const overContainer = findContainer(overId);
+    const activeContainer = findContainer(active?.id);
+    const overContainer = findContainer(over?.id);
     if (!activeContainer || !overContainer || activeContainer !== overContainer) return;
-    const activeIndex = items[activeContainer].indexOf(active.id);
-    const overIndex = items[overContainer].indexOf(overId);
+    const activeIndex = items[activeContainer].indexOf(active?.id);
+    const overIndex = items[overContainer].indexOf(over?.id);
     if (activeIndex !== overIndex) {
       setItems((staetItems) => ({
         ...staetItems,
@@ -99,6 +103,11 @@ export default function Table(): React.ReactElement {
     }
     setActiveId(null);
   }
+
+  React.useEffect(() => {
+    dispatch(getLaunchesActionRequest());
+    return () => {};
+  }, [dispatch]);
 
   return (
     <DndContext
@@ -124,9 +133,10 @@ export default function Table(): React.ReactElement {
             My launches
           </Typography>
         </div>
-        {Object.keys(items).map((group) => (
+        {/* {Object.keys(items).map((group) => (
           <Column id={group} items={items[group]} key={group} />
-        ))}
+        ))} */}
+        <Column id='test' items={launches.upcoming} key='test' showSkeletons={launches.loader} />
       </div>
       <DragOverlay>{activeId ? <TableCard id={activeId} /> : null}</DragOverlay>
     </DndContext>
