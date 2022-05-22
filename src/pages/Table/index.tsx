@@ -4,6 +4,7 @@ import {
   closestCorners,
   DndContext,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   KeyboardSensor,
@@ -16,6 +17,7 @@ import { Typography } from "@mui/material";
 import { getLaunchesActionRequest } from "@store/launches/launchesActions";
 import { LaunchType } from "@store/launches/launchesTypes";
 import { RootState } from "@store/store";
+import { isString } from "@utils/simpleTypeGuards";
 import classNames from "classnames/bind";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,18 +27,20 @@ const cnb = classNames.bind(styles);
 
 const typoStyles = { color: "text.primary", textTransform: "uppercase" } as const;
 
+type MapType = Map<string, LaunchType>;
+
 export default function Table(): React.ReactElement {
   const dispatch = useDispatch();
   const launches = useSelector((state: RootState) => state.launches);
 
   const [items, setItems] = React.useState<{
-    past: LaunchType[];
-    upcoming: LaunchType[];
-    booked: LaunchType[];
+    past: MapType;
+    upcoming: MapType;
+    booked: MapType;
   }>({
-    past: [],
-    upcoming: [],
-    booked: []
+    past: new Map([]),
+    upcoming: new Map([]),
+    booked: new Map([])
   });
 
   const [activeId, setActiveId] = React.useState<number | string | null>(null);
@@ -50,44 +54,45 @@ export default function Table(): React.ReactElement {
 
   const findContainer = (id: string): string | undefined => {
     if (id in items) return id;
-    return Object.keys(items).find((key) => items[key].find((item) => id === item.id));
+    return Object.keys(items).find((key) => items[key].get(id));
   };
 
   const handleDragStart = (event: DragStartEvent): void => {
     setActiveId(event.active.id);
   };
 
-  const handleDragOver = (event): void => {
-    const { active, over, draggingRect } = event;
-    const { id } = active;
-    const { id: overId } = over;
+  const handleDragOver = ({ active, over }: DragOverEvent): void => {
+    const id: string = isString(active.id) ? active.id : "";
+    const overId: string = over?.id && isString(over.id) ? over.id : "";
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
     if (!activeContainer || !overContainer || activeContainer === overContainer) return;
+
     setItems((prev) => {
-      const activeItems = prev[activeContainer];
-      const overItems = prev[overContainer];
-      const activeIndex = activeItems.find((item) => item.id === id)?.id;
-      const overIndex = overItems.find((item) => item.id === overId)?.id;
-      let newIndex;
+      const activeItems: MapType = prev[activeContainer];
+      const overItems: MapType = prev[overContainer];
+      const activeMapArray: [string, LaunchType][] = Array.from(activeItems);
+      const overItemsMapArray: [string, LaunchType][] = Array.from(overItems);
+      const activeIndex = activeItems.get(id)?.id;
+      const overIndex = overItemsMapArray.findIndex((item) => item[0] === overId);
+
+      let newIndex: number;
       if (overId in prev) {
-        newIndex = overItems.length + 1;
+        newIndex = overItems.size + 1;
       } else {
-        const isBelowLastItem =
-          over &&
-          overIndex === overItems.length - 1 &&
-          draggingRect?.offsetTop > over.rect.offsetTop + over.rect.height;
-        const modifier = isBelowLastItem ? 1 : 0;
-        newIndex = overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
+        newIndex = overIndex >= 0 ? overIndex : overItems.size + 1;
       }
+
+      const activeIndexItem = activeIndex ? activeItems.get(activeIndex) : undefined;
+
       return {
         ...prev,
-        [activeContainer]: [...prev[activeContainer].filter((item) => item.id !== active.id)],
-        [overContainer]: [
-          ...prev[overContainer].slice(0, newIndex),
-          items[activeContainer].find((item) => item.id === activeIndex),
-          ...prev[overContainer].slice(newIndex, prev[overContainer].length)
-        ]
+        [activeContainer]: new Map(activeMapArray.filter(([key]) => key !== active?.id)),
+        [overContainer]: new Map([
+          ...overItemsMapArray.slice(0, newIndex),
+          [activeIndexItem?.id, activeIndexItem],
+          ...overItemsMapArray.slice(newIndex, overItemsMapArray.length)
+        ])
       };
     });
   };
@@ -96,12 +101,22 @@ export default function Table(): React.ReactElement {
     const activeContainer = findContainer(active?.id.toString());
     const overContainer = findContainer(active?.id.toString());
     if (!activeContainer || !overContainer || activeContainer !== overContainer) return;
-    const activeIndex = items[activeContainer].findIndex((item) => item.id === active?.id);
-    const overIndex = items[overContainer].findIndex((item) => item.id === over?.id);
+    const activeIndex: number = Array.from(items[activeContainer].keys()).findIndex(
+      (item) => item === active?.id
+    );
+    const overIndex: number = Array.from(items[overContainer].keys()).findIndex(
+      (item) => item === over?.id
+    );
     if (activeIndex !== overIndex) {
       setItems((stateItems) => ({
         ...stateItems,
-        [overContainer]: arrayMove(stateItems[overContainer], activeIndex, overIndex)
+        [overContainer]: new Map(
+          arrayMove<LaunchType>(
+            Array.from(stateItems[overContainer].values()),
+            activeIndex,
+            overIndex
+          ).map((item) => [item.id, item])
+        )
       }));
     }
     setActiveId(null);
@@ -109,9 +124,9 @@ export default function Table(): React.ReactElement {
 
   React.useEffect(() => {
     setItems({
-      past: launches.past.slice(0, 5),
-      upcoming: launches.upcoming.slice(0, 5),
-      booked: launches.booked.slice(0, 5)
+      past: new Map(launches.past.slice(0, 5).map((item) => [item.id, item])),
+      upcoming: new Map(launches.upcoming.slice(0, 5).map((item) => [item.id, item])),
+      booked: new Map(launches.booked.slice(0, 5).map((item) => [item.id, item]))
     });
   }, [launches.booked, launches.past, launches.upcoming]);
 
@@ -144,7 +159,12 @@ export default function Table(): React.ReactElement {
           </Typography>
         </div>
         {Object.keys(items).map((group) => (
-          <Column id={group} items={items[group]} key={group} showSkeletons={launches.loader} />
+          <Column
+            id={group}
+            items={Array.from(items[group].values())}
+            key={group}
+            showSkeletons={launches.loader}
+          />
         ))}
       </div>
       <DragOverlay>{activeId ? <TableCard id={activeId.toString()} /> : null}</DragOverlay>
