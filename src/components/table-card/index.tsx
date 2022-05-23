@@ -18,7 +18,12 @@ interface Props {
   style?: React.CSSProperties;
 }
 
-export default function TableCard({ id, cardInfo, disableDrag, style }: Props): React.ReactElement {
+export default function TableCard({
+  id,
+  cardInfo,
+  disableDrag,
+  style
+}: Readonly<Props>): React.ReactElement {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id,
     disabled: disableDrag

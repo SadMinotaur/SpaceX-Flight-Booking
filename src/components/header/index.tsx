@@ -12,6 +12,8 @@ import styles from "./styles.module.scss";
 
 const cnb = classNames.bind(styles);
 
+const iconColor = { color: "text.primary" } as const;
+
 export default function Header(): React.ReactElement {
   const location = useLocation();
   const outsideHome = location.pathname !== "/";
@@ -25,19 +27,19 @@ export default function Header(): React.ReactElement {
 
   return (
     <header className={cnb("headerContainer")}>
-      <Typography variant='h3' sx={{ color: "text.primary" }}>
+      <Typography variant='h3' sx={iconColor}>
         Explore the space
       </Typography>
       <Button onClick={onThemeSwitch}>
         {theme === AppThemes.dark ? (
-          <Brightness5Icon fontSize='large' sx={{ color: "text.primary" }} />
+          <Brightness5Icon fontSize='large' sx={iconColor} />
         ) : (
-          <Brightness7Icon fontSize='large' sx={{ color: "text.primary" }} />
+          <Brightness7Icon fontSize='large' sx={iconColor} />
         )}
       </Button>
       {outsideHome && (
         <Button>
-          <HomeIcon fontSize='large' sx={{ color: "text.primary" }} />
+          <HomeIcon fontSize='large' sx={iconColor} />
         </Button>
       )}
     </header>

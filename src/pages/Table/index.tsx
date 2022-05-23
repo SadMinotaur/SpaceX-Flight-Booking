@@ -1,12 +1,9 @@
 import Column from "@components/column";
-import TableCard from "@components/table-card";
 import {
   closestCorners,
   DndContext,
   DragEndEvent,
   DragOverEvent,
-  DragOverlay,
-  DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -26,8 +23,10 @@ import styles from "./styles.module.scss";
 const cnb = classNames.bind(styles);
 
 const typoStyles = { color: "text.primary", textTransform: "uppercase" } as const;
+const disabledColumns = new Set<string>(["past"]);
 
 type MapType = Map<string, LaunchType>;
+type MapArrayType = [string, LaunchType][];
 
 export default function Table(): React.ReactElement {
   const dispatch = useDispatch();
@@ -43,8 +42,6 @@ export default function Table(): React.ReactElement {
     booked: new Map([])
   });
 
-  const [activeId, setActiveId] = React.useState<number | string | null>(null);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -53,12 +50,9 @@ export default function Table(): React.ReactElement {
   );
 
   const findContainer = (id: string): string | undefined => {
-    if (id in items) return id;
+    const container = Object.entries(items).find(([key]) => key === id)?.[0];
+    if (container) return container;
     return Object.keys(items).find((key) => items[key].get(id));
-  };
-
-  const handleDragStart = (event: DragStartEvent): void => {
-    setActiveId(event.active.id);
   };
 
   const handleDragOver = ({ active, over }: DragOverEvent): void => {
@@ -66,25 +60,27 @@ export default function Table(): React.ReactElement {
     const overId: string = over?.id && isString(over.id) ? over.id : "";
     const activeContainer = findContainer(id);
     const overContainer = findContainer(overId);
-    if (!activeContainer || !overContainer || activeContainer === overContainer) return;
-
+    if (
+      !activeContainer ||
+      !overContainer ||
+      activeContainer === overContainer ||
+      disabledColumns.has(overContainer)
+    )
+      return;
     setItems((prev) => {
       const activeItems: MapType = prev[activeContainer];
       const overItems: MapType = prev[overContainer];
-      const activeMapArray: [string, LaunchType][] = Array.from(activeItems);
-      const overItemsMapArray: [string, LaunchType][] = Array.from(overItems);
+      const activeMapArray: MapArrayType = Array.from(activeItems);
+      const overItemsMapArray: MapArrayType = Array.from(overItems);
       const activeIndex = activeItems.get(id)?.id;
       const overIndex = overItemsMapArray.findIndex((item) => item[0] === overId);
-
       let newIndex: number;
       if (overId in prev) {
         newIndex = overItems.size + 1;
       } else {
         newIndex = overIndex >= 0 ? overIndex : overItems.size + 1;
       }
-
       const activeIndexItem = activeIndex ? activeItems.get(activeIndex) : undefined;
-
       return {
         ...prev,
         [activeContainer]: new Map(activeMapArray.filter(([key]) => key !== active?.id)),
@@ -119,14 +115,13 @@ export default function Table(): React.ReactElement {
         )
       }));
     }
-    setActiveId(null);
   };
 
   React.useEffect(() => {
     setItems({
       past: new Map(launches.past.slice(0, 5).map((item) => [item.id, item])),
-      upcoming: new Map(launches.upcoming.slice(0, 5).map((item) => [item.id, item])),
-      booked: new Map(launches.booked.slice(0, 5).map((item) => [item.id, item]))
+      upcoming: new Map(launches.upcoming.map((item) => [item.id, item])),
+      booked: new Map(launches.booked.map((item) => [item.id, item]))
     });
   }, [launches.booked, launches.past, launches.upcoming]);
 
@@ -135,39 +130,38 @@ export default function Table(): React.ReactElement {
   }, [dispatch]);
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className={cnb("tableContainer")}>
-        <div className={cnb("columnHeader")}>
-          <Typography variant='h5' sx={typoStyles}>
-            Past launches
-          </Typography>
-        </div>
-        <div className={cnb("columnHeader")}>
-          <Typography variant='h5' sx={typoStyles}>
-            Launches
-          </Typography>
-        </div>
-        <div className={cnb("columnHeader")}>
-          <Typography variant='h5' sx={typoStyles}>
-            My launches
-          </Typography>
-        </div>
+    <div className={cnb("tableContainer")}>
+      <div className={cnb("columnHeader")}>
+        <Typography variant='h5' sx={typoStyles}>
+          Past launches
+        </Typography>
+      </div>
+      <div className={cnb("columnHeader")}>
+        <Typography variant='h5' sx={typoStyles}>
+          Launches
+        </Typography>
+      </div>
+      <div className={cnb("columnHeader")}>
+        <Typography variant='h5' sx={typoStyles}>
+          My launches
+        </Typography>
+      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
         {Object.keys(items).map((group) => (
           <Column
             id={group}
-            items={Array.from(items[group].values())}
             key={group}
+            items={Array.from(items[group].values())}
             showSkeletons={launches.loader}
+            disabled={disabledColumns.has(group)}
           />
         ))}
-      </div>
-      <DragOverlay>{activeId ? <TableCard id={activeId.toString()} /> : null}</DragOverlay>
-    </DndContext>
+      </DndContext>
+    </div>
   );
 }

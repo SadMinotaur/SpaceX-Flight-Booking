@@ -1,7 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import createSagaMiddleware, { SagaMiddleware } from "redux-saga";
-import rootSaga from "./rootSaga";
 import launches from "./launches/lanchesRedusers";
+import rootSaga from "./rootSaga";
 import theme from "./theme";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
