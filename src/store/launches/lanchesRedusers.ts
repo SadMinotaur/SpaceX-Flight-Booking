@@ -11,7 +11,7 @@ export const initStoreState: T.LaunchesInfo = {
 
 export default createReducer(initStoreState, (builder) => {
   builder
-    .addCase(A.getLaunchesActionSuccess, (state, { payload }) => ({
+    .addCase(A.setLaunches, (state, { payload }) => ({
       ...state,
       ...payload
     }))

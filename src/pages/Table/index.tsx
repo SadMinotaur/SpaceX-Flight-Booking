@@ -10,9 +10,13 @@ import {
   useSensors
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { Typography } from "@mui/material";
+import { Snackbar, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogTitle from "@mui/material/DialogTitle";
 import { getLaunchesActionRequest } from "@store/launches/launchesActions";
-import { LaunchType } from "@store/launches/launchesTypes";
+import { CardsState, LaunchType, MapArrayType, MapType } from "@store/launches/launchesTypes";
 import { RootState } from "@store/store";
 import { isString } from "@utils/simpleTypeGuards";
 import classNames from "classnames/bind";
@@ -25,22 +29,18 @@ const cnb = classNames.bind(styles);
 const typoStyles = { color: "text.primary", textTransform: "uppercase" } as const;
 const disabledColumns = new Set<string>(["past"]);
 
-type MapType = Map<string, LaunchType>;
-type MapArrayType = [string, LaunchType][];
-
 export default function Table(): React.ReactElement {
   const dispatch = useDispatch();
   const launches = useSelector((state: RootState) => state.launches);
 
-  const [items, setItems] = React.useState<{
-    past: MapType;
-    upcoming: MapType;
-    booked: MapType;
-  }>({
+  const [items, setItems] = React.useState<CardsState>({
     past: new Map([]),
     upcoming: new Map([]),
     booked: new Map([])
   });
+
+  const [snackbarState, setSnackbarState] = React.useState<boolean>(false);
+  const [modalState, setModalState] = React.useState<boolean>(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -50,8 +50,7 @@ export default function Table(): React.ReactElement {
   );
 
   const findContainer = (id: string): string | undefined => {
-    const container = Object.entries(items).find(([key]) => key === id)?.[0];
-    if (container) return container;
+    if (id in items) return id;
     return Object.keys(items).find((key) => items[key].get(id));
   };
 
@@ -67,30 +66,40 @@ export default function Table(): React.ReactElement {
       disabledColumns.has(overContainer)
     )
       return;
-    setItems((prev) => {
-      const activeItems: MapType = prev[activeContainer];
-      const overItems: MapType = prev[overContainer];
-      const activeMapArray: MapArrayType = Array.from(activeItems);
-      const overItemsMapArray: MapArrayType = Array.from(overItems);
-      const activeIndex = activeItems.get(id)?.id;
-      const overIndex = overItemsMapArray.findIndex((item) => item[0] === overId);
-      let newIndex: number;
-      if (overId in prev) {
-        newIndex = overItems.size + 1;
-      } else {
-        newIndex = overIndex >= 0 ? overIndex : overItems.size + 1;
-      }
-      const activeIndexItem = activeIndex ? activeItems.get(activeIndex) : undefined;
-      return {
-        ...prev,
-        [activeContainer]: new Map(activeMapArray.filter(([key]) => key !== active?.id)),
-        [overContainer]: new Map([
-          ...overItemsMapArray.slice(0, newIndex),
-          [activeIndexItem?.id, activeIndexItem],
-          ...overItemsMapArray.slice(newIndex, overItemsMapArray.length)
-        ])
-      };
-    });
+
+    const func = () =>
+      setItems((prev) => {
+        const activeItems: MapType = prev[activeContainer];
+        const overItems: MapType = prev[overContainer];
+        const activeMapArray: MapArrayType = Array.from(activeItems);
+        const overItemsMapArray: MapArrayType = Array.from(overItems);
+        const activeIndex = activeItems.get(id)?.id;
+        const overIndex = overItemsMapArray.findIndex((item) => item[0] === overId);
+        let newIndex: number;
+        if (overId in prev) {
+          newIndex = overItems.size + 1;
+        } else {
+          newIndex = overIndex >= 0 ? overIndex : overItems.size + 1;
+        }
+        const activeIndexItem = activeIndex ? activeItems.get(activeIndex) : undefined;
+        return {
+          ...prev,
+          [activeContainer]: new Map(activeMapArray.filter(([key]) => key !== active?.id)),
+          [overContainer]: new Map([
+            ...overItemsMapArray.slice(0, newIndex),
+            [activeIndexItem?.id, activeIndexItem],
+            ...overItemsMapArray.slice(newIndex, overItemsMapArray.length)
+          ])
+        };
+      });
+
+    if (overContainer === "upcoming") {
+      setModalState(true);
+      func();
+    } else {
+      setSnackbarState(true);
+      func();
+    }
   };
 
   const handleDragEnd = ({ active, over }: DragEndEvent): void => {
@@ -115,6 +124,18 @@ export default function Table(): React.ReactElement {
         )
       }));
     }
+  };
+
+  const closeModal = () => {
+    setModalState(false);
+  };
+
+  const closeSnackbar = () => {
+    setSnackbarState(false);
+  };
+
+  const agreeClick = () => {
+    closeModal();
   };
 
   React.useEffect(() => {
@@ -162,6 +183,15 @@ export default function Table(): React.ReactElement {
           />
         ))}
       </DndContext>
+      <Dialog open={modalState} onClose={closeModal}>
+        <DialogTitle>Cancel this launch?</DialogTitle>
+        <DialogActions>
+          <Button onClick={agreeClick} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Snackbar open={snackbarState} onClick={closeSnackbar} message='Launch booked' />
     </div>
   );
 }

@@ -124,7 +124,36 @@ export interface LaunchesInfo {
   booked: LaunchType[];
 }
 
-export interface LaunchesReducerFetched {
+export interface LaunchesState {
   past: LaunchType[];
   upcoming: LaunchType[];
+  booked: LaunchType[];
+}
+
+export enum LaunchesGetTypes {
+  upcoming = "upcoming",
+  past = "past"
+}
+
+export enum LaunchesBookTypes {
+  book = "book",
+  cancel = "cancel"
+}
+export type BookReqArg = {
+  type: LaunchesBookTypes;
+  id: string;
+};
+
+export type MapType = Map<string, LaunchType>;
+export type MapArrayType = [string, LaunchType][];
+export interface CardsState {
+  past: MapType;
+  upcoming: MapType;
+  booked: MapType;
+}
+
+export interface BookRequest {
+  type: LaunchesBookTypes;
+  id: string;
+  cardsState: CardsState;
 }
