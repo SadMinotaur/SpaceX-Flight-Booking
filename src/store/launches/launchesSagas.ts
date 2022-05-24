@@ -6,33 +6,33 @@ import * as T from "./launchesTypes";
 
 function* getLaunches() {
   try {
-    yield put(A.setLoaderLaunches(true));
+    yield put(A.setLoaderLaunches("all"));
     const past = yield call(R.getLaunchesRequest, T.LaunchesGetTypes.past);
     const upcoming = yield call(R.getLaunchesRequest, T.LaunchesGetTypes.upcoming);
     yield put(A.setLaunches({ past, upcoming, booked: [] }));
   } catch (e) {
     if (e instanceof Error) yield put(A.getLaunchesActionFailure(e.message));
   } finally {
-    yield put(A.setLoaderLaunches(false));
+    yield put(A.setLoaderLaunches(null));
   }
 }
 
 function* bookLaunch({ payload }: PayloadAction<T.BookRequest>) {
   try {
     const { id, type, cardsState } = payload;
-    yield put(A.setLoaderLaunches(true));
+    yield put(A.setLoaderLaunches(type === T.LaunchesBookTypes.book ? "booked" : "upcoming"));
     yield call(R.bookLaunchRequest, { id, type });
     yield put(
       A.setLaunches({
-        past: Array.from(cardsState.past.values()),
-        upcoming: Array.from(cardsState.upcoming.values()),
-        booked: Array.from(cardsState.booked.values())
+        past: cardsState.past,
+        upcoming: cardsState.upcoming,
+        booked: cardsState.booked
       })
     );
   } catch (e) {
     if (e instanceof Error) yield put(A.bookLaunchesActionFailure(e.message));
   } finally {
-    yield put(A.setLoaderLaunches(false));
+    yield put(A.setLoaderLaunches(null));
   }
 }
 

@@ -118,7 +118,7 @@ enum Rocket {
 }
 
 export interface LaunchesInfo {
-  loader: boolean;
+  loader: LoaderTypes;
   past: LaunchType[];
   upcoming: LaunchType[];
   booked: LaunchType[];
@@ -144,12 +144,10 @@ export type BookReqArg = {
   id: string;
 };
 
-export type MapType = Map<string, LaunchType>;
-export type MapArrayType = [string, LaunchType][];
 export interface CardsState {
-  past: MapType;
-  upcoming: MapType;
-  booked: MapType;
+  past: LaunchType[];
+  upcoming: LaunchType[];
+  booked: LaunchType[];
 }
 
 export interface BookRequest {
@@ -157,3 +155,5 @@ export interface BookRequest {
   id: string;
   cardsState: CardsState;
 }
+
+export type LoaderTypes = "all" | keyof LaunchesState | null;

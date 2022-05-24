@@ -6,7 +6,7 @@ export const initStoreState: T.LaunchesInfo = {
   past: [],
   upcoming: [],
   booked: [],
-  loader: false
+  loader: null
 };
 
 export default createReducer(initStoreState, (builder) => {

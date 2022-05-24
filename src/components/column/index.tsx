@@ -49,7 +49,7 @@ export default function Column({
         {showSkeletons &&
           [...Array(2)].map(() => {
             const key = `skeleton${Math.random()}`;
-            return <TableCard key={key} id={key} disableDrag />;
+            return <TableCard key={key} id={key} />;
           })}
         {!showSkeletons && (
           <div ref={parentRef} className={cnb("listParentContainer")}>
@@ -61,10 +61,9 @@ export default function Column({
               }}
             >
               {rowVirtualizer.virtualItems.map((virtualRow) => {
-                const item = items[virtualRow.index];
+                const item: LaunchType = items[virtualRow.index];
                 return (
                   <TableCard
-                    disableDrag={disabled}
                     key={item.id}
                     id={item.id}
                     cardInfo={item}

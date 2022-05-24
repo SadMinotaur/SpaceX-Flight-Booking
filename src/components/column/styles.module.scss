@@ -4,7 +4,7 @@
 
   .listParentContainer {
     height: 700px;
-    overflow-y: auto;
+    overflow-y: scroll;
     overflow-x: hidden;
     scroll-behavior: smooth;
   }

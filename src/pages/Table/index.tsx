@@ -3,49 +3,53 @@ import TableCard from "@components/table-card";
 import {
   closestCorners,
   DndContext,
-  DragStartEvent,
-  DragEndEvent,
-  DragOverEvent,
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
   useSensor,
-  useSensors,
-  UniqueIdentifier
+  useSensors
 } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Snackbar, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogTitle from "@mui/material/DialogTitle";
-import { getLaunchesActionRequest } from "@store/launches/launchesActions";
-import { CardsState, LaunchType, MapArrayType, MapType } from "@store/launches/launchesTypes";
+import {
+  bookLaunchesActionRequest,
+  getLaunchesActionRequest
+} from "@store/launches/launchesActions";
+import { CardsState, LaunchesBookTypes, LaunchType } from "@store/launches/launchesTypes";
 import { RootState } from "@store/store";
-import { isString } from "@utils/simpleTypeGuards";
 import classNames from "classnames/bind";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./styles.module.scss";
+import {
+  disabledColumns,
+  handleDragEnd,
+  handleDragOver,
+  handleDragStart,
+  ModalState,
+  showLoader,
+  typographyStyles
+} from "./utils";
 
 const cnb = classNames.bind(styles);
-
-const typoStyles = { color: "text.primary", textTransform: "uppercase" } as const;
-const disabledColumns = new Set<string>(["past"]);
 
 export default function Table(): React.ReactElement {
   const dispatch = useDispatch();
   const launches = useSelector((state: RootState) => state.launches);
 
   const [items, setItems] = React.useState<CardsState>({
-    past: new Map([]),
-    upcoming: new Map([]),
-    booked: new Map([])
+    past: [],
+    upcoming: [],
+    booked: []
   });
 
   const [snackbarState, setSnackbarState] = React.useState<boolean>(false);
-  const [modalState, setModalState] = React.useState<boolean>(false);
-  const [activeId, setActiveId] = React.useState<UniqueIdentifier | null>(null);
+  const [modalState, setModalState] = React.useState<ModalState | null>(null);
+  const [activeItem, setActiveItem] = React.useState<LaunchType | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -54,102 +58,42 @@ export default function Table(): React.ReactElement {
     })
   );
 
-  const findContainer = (id: string): string | undefined => {
-    if (id in items) return id;
-    return Object.keys(items).find((key) => items[key].get(id));
+  const closeModal = (): void => {
+    setModalState(null);
   };
 
-  const handleDragOver = ({ active, over }: DragOverEvent): void => {
-    const id: string = isString(active.id) ? active.id : "";
-    const overId: string = over?.id && isString(over.id) ? over.id : "";
-    const activeContainer = findContainer(id);
-    const overContainer = findContainer(overId);
-    if (
-      !activeContainer ||
-      !overContainer ||
-      activeContainer === overContainer ||
-      disabledColumns.has(overContainer)
-    )
-      return;
-
-    const StateAfterColumnChange = () => {
-      const activeItems: MapType = items[activeContainer];
-      const overItems: MapType = items[overContainer];
-      const activeMapArray: MapArrayType = Array.from(activeItems);
-      const overItemsMapArray: MapArrayType = Array.from(overItems);
-      const activeIndex = activeItems.get(id)?.id;
-      const overIndex = overItemsMapArray.findIndex((item) => item[0] === overId);
-      let newIndex: number;
-      if (overId in items) {
-        newIndex = overItems.size + 1;
-      } else {
-        newIndex = overIndex >= 0 ? overIndex : overItems.size + 1;
-      }
-      const activeIndexItem = activeIndex ? activeItems.get(activeIndex) : undefined;
-      return {
-        ...items,
-        [activeContainer]: new Map(activeMapArray.filter(([key]) => key !== active?.id)),
-        [overContainer]: new Map([
-          ...overItemsMapArray.slice(0, newIndex),
-          [activeIndexItem?.id, activeIndexItem],
-          ...overItemsMapArray.slice(newIndex, overItemsMapArray.length)
-        ])
-      };
-    };
-    if (overContainer === "upcoming") {
-      setModalState(true);
-      setItems(StateAfterColumnChange());
-    } else {
-      setSnackbarState(true);
-      setItems(StateAfterColumnChange());
-    }
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id);
-  };
-
-  const handleDragEnd = ({ active, over }: DragEndEvent): void => {
-    const activeContainer = findContainer(active?.id.toString());
-    const overContainer = findContainer(active?.id.toString());
-    if (!activeContainer || !overContainer || activeContainer !== overContainer) return;
-    const activeIndex: number = Array.from(items[activeContainer].keys()).findIndex(
-      (item) => item === active?.id
-    );
-    const overIndex: number = Array.from(items[overContainer].keys()).findIndex(
-      (item) => item === over?.id
-    );
-    if (activeIndex !== overIndex) {
-      setItems((stateItems) => ({
-        ...stateItems,
-        [overContainer]: new Map(
-          arrayMove<LaunchType>(
-            Array.from(stateItems[overContainer].values()),
-            activeIndex,
-            overIndex
-          ).map((item) => [item.id, item])
-        )
-      }));
-    }
-  };
-
-  const closeModal = () => {
-    setModalState(false);
-  };
-
-  const closeSnackbar = () => {
-    setSnackbarState(false);
-  };
-
-  const agreeClick = () => {
+  const agreeClick = (): void => {
+    if (modalState)
+      dispatch(
+        bookLaunchesActionRequest({
+          type: LaunchesBookTypes.cancel,
+          id: modalState.id,
+          cardsState: modalState.cardsState
+        })
+      );
     closeModal();
+  };
+
+  const bookLaunch = ({ cardsState, id }: ModalState): void => {
+    dispatch(
+      bookLaunchesActionRequest({
+        type: LaunchesBookTypes.book,
+        id,
+        cardsState
+      })
+    );
+    setSnackbarState(true);
+  };
+
+  const closeSnackbar = (): void => {
+    setSnackbarState(false);
   };
 
   React.useEffect(() => {
     setItems({
-      past: new Map(launches.past.map((item) => [item.id, item])),
-      upcoming: new Map(launches.upcoming.map((item) => [item.id, item])),
-      booked: new Map(launches.booked.map((item) => [item.id, item]))
+      past: launches.past,
+      upcoming: launches.upcoming,
+      booked: launches.booked
     });
   }, [launches.booked, launches.past, launches.upcoming]);
 
@@ -160,39 +104,41 @@ export default function Table(): React.ReactElement {
   return (
     <div className={cnb("tableContainer")}>
       <div className={cnb("columnHeader")}>
-        <Typography variant='h5' sx={typoStyles}>
+        <Typography variant='h5' sx={typographyStyles}>
           Past launches
         </Typography>
       </div>
       <div className={cnb("columnHeader")}>
-        <Typography variant='h5' sx={typoStyles}>
+        <Typography variant='h5' sx={typographyStyles}>
           Launches
         </Typography>
       </div>
       <div className={cnb("columnHeader")}>
-        <Typography variant='h5' sx={typoStyles}>
+        <Typography variant='h5' sx={typographyStyles}>
           My launches
         </Typography>
       </div>
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
+        onDragStart={(e) => handleDragStart({ e, items, setActiveItem })}
+        onDragOver={(e) => handleDragOver({ e, items, setModalState, bookLaunch })}
+        onDragEnd={(e) => handleDragEnd({ e, items, setItems })}
       >
-        {Object.keys(items).map((group) => (
+        {Object.keys(items).map((group: string) => (
           <Column
             id={group}
-            key={group}
-            items={Array.from(items[group].values())}
-            showSkeletons={launches.loader}
+            key={`columns${group}`}
+            items={items[group]}
+            showSkeletons={showLoader(group, launches.loader)}
             disabled={disabledColumns.has(group)}
           />
         ))}
-        <DragOverlay>{activeId ? <TableCard id={activeId.toString()} /> : null}</DragOverlay>
+        <DragOverlay>
+          {activeItem && <TableCard id={activeItem.id} cardInfo={activeItem} />}
+        </DragOverlay>
       </DndContext>
-      <Dialog open={modalState} onClose={closeModal}>
+      <Dialog open={!!modalState} onClose={closeModal}>
         <DialogTitle>Cancel this launch?</DialogTitle>
         <DialogActions>
           <Button onClick={agreeClick} autoFocus>
@@ -201,10 +147,10 @@ export default function Table(): React.ReactElement {
         </DialogActions>
       </Dialog>
       <Snackbar
-        open={snackbarState}
+        open={!!snackbarState}
         onClose={closeSnackbar}
         message='Launch booked'
-        autoHideDuration={1000}
+        autoHideDuration={2000}
       />
     </div>
   );
