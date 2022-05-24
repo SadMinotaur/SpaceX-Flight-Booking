@@ -34,7 +34,7 @@ export default function Column({
   const rowVirtualizer = useVirtual({
     size: items.length,
     parentRef,
-    estimateSize: React.useCallback(() => 305, []),
+    estimateSize: React.useCallback(() => 315, []),
     overscan: 2
   });
 

@@ -5,8 +5,10 @@ import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import { LaunchType } from "@store/launches/launchesTypes";
+import convertDate from "@utils/convertDate";
 import classNames from "classnames/bind";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import MemoizedSkeleton from "./MemoizedSkeleton";
 import styles from "./styles.module.scss";
 
@@ -19,21 +21,18 @@ interface Props {
   style?: React.CSSProperties;
 }
 
-const convertDate = (date_utc?: string): string => {
-  if (!date_utc) return "";
-  return new Date(date_utc).toLocaleDateString("en", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric"
-  });
-};
-
 export default function TableCard({
   id,
   cardInfo,
   disableDrag,
   style
 }: Readonly<Props>): React.ReactElement {
+  const navigate = useNavigate();
+
+  const onEnterClick = (): void => {
+    navigate(`card/${id}`);
+  };
+
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
     id,
     disabled: disableDrag
@@ -50,25 +49,29 @@ export default function TableCard({
         transition
       }}
       ref={setNodeRef}
-      {...attributes}
-      {...listeners}
     >
       {showSkeleton ? (
         <MemoizedSkeleton />
       ) : (
         <>
-          <CardMedia
-            component='img'
-            height='140'
-            image={cardInfo.links.patch.small || "https://via.placeholder.com/350x140"}
-            alt={`${cardInfo?.name} flight patch`}
-          />
-          <CardContent>
-            <Typography variant='h4'>{cardInfo?.name}</Typography>
-            <Typography variant='h6'>Date: {convertDate(cardInfo.date_utc)}</Typography>
-          </CardContent>
+          <div {...attributes} {...listeners}>
+            <CardMedia
+              component='img'
+              height='140'
+              image={cardInfo.links.patch.small || "https://via.placeholder.com/350x140"}
+              alt={`${cardInfo?.name} flight patch`}
+            />
+            <CardContent>
+              <Typography variant='h4' className={cnb("title")}>
+                {cardInfo?.name}
+              </Typography>
+              <Typography variant='h6'>{convertDate(cardInfo.date_utc)}</Typography>
+            </CardContent>
+          </div>
           <CardActions className={cnb("alignRight")}>
-            <Button color='secondary'>Open</Button>
+            <Button onClick={onEnterClick} color='secondary'>
+              Open
+            </Button>
           </CardActions>
         </>
       )}

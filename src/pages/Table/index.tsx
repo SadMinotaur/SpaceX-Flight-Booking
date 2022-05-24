@@ -50,6 +50,7 @@ export default function Table(): React.ReactElement {
   const [snackbarState, setSnackbarState] = React.useState<boolean>(false);
   const [modalState, setModalState] = React.useState<ModalState | null>(null);
   const [activeItem, setActiveItem] = React.useState<LaunchType | null>(null);
+  const [itemsBeforeDrag, setItemsBeforeDrag] = React.useState<CardsState | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -62,7 +63,7 @@ export default function Table(): React.ReactElement {
     setModalState(null);
   };
 
-  const agreeClick = (): void => {
+  const onAgreeClick = (): void => {
     if (modalState)
       dispatch(
         bookLaunchesActionRequest({
@@ -121,9 +122,19 @@ export default function Table(): React.ReactElement {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
-        onDragStart={(e) => handleDragStart({ e, items, setActiveItem })}
-        onDragOver={(e) => handleDragOver({ e, items, setModalState, bookLaunch })}
-        onDragEnd={(e) => handleDragEnd({ e, items, setItems })}
+        onDragStart={(e) => handleDragStart({ e, items, setActiveItem, setItemsBeforeDrag })}
+        onDragOver={(e) => handleDragOver({ e, items, setItems })}
+        onDragEnd={(e) =>
+          handleDragEnd({
+            e,
+            items,
+            setItems,
+            bookLaunch,
+            setModalState,
+            itemsBeforeDrag,
+            setItemsBeforeDrag
+          })
+        }
       >
         {Object.keys(items).map((group: string) => (
           <Column
@@ -141,7 +152,7 @@ export default function Table(): React.ReactElement {
       <Dialog open={!!modalState} onClose={closeModal}>
         <DialogTitle>Cancel this launch?</DialogTitle>
         <DialogActions>
-          <Button onClick={agreeClick} autoFocus>
+          <Button onClick={onAgreeClick} autoFocus>
             Agree
           </Button>
         </DialogActions>

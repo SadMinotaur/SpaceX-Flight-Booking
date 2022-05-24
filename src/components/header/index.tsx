@@ -7,7 +7,7 @@ import { AppThemes, setAppTheme } from "@store/theme";
 import classNames from "classnames/bind";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styles from "./styles.module.scss";
 
 const cnb = classNames.bind(styles);
@@ -20,6 +20,11 @@ export default function Header(): React.ReactElement {
 
   const dispatch = useDispatch();
   const theme = useSelector((state: RootState) => state.theme);
+  const navigate = useNavigate();
+
+  const onEnterClick = (): void => {
+    navigate("/");
+  };
 
   const onThemeSwitch = () => {
     dispatch(setAppTheme(theme === AppThemes.light ? AppThemes.dark : AppThemes.light));
@@ -38,7 +43,7 @@ export default function Header(): React.ReactElement {
         )}
       </Button>
       {outsideHome && (
-        <Button>
+        <Button onClick={onEnterClick}>
           <HomeIcon fontSize='large' sx={iconColor} />
         </Button>
       )}

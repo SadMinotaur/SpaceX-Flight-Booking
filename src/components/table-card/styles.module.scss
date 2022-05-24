@@ -1,7 +1,13 @@
 .cardWrapper {
   user-select: none;
-  min-width: 360px;
+  width: 360px;
 
+  .title {
+    max-width: 325px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   .alignRight {
     justify-content: end;
   }

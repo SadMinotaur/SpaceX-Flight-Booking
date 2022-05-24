@@ -6,7 +6,8 @@ export const initStoreState: T.LaunchesInfo = {
   past: [],
   upcoming: [],
   booked: [],
-  loader: null
+  loader: [],
+  singleFlight: null
 };
 
 export default createReducer(initStoreState, (builder) => {
@@ -15,6 +16,7 @@ export default createReducer(initStoreState, (builder) => {
       ...state,
       ...payload
     }))
+    .addCase(A.getLaunchActionSucces, (state, { payload }) => ({ ...state, singleFlight: payload }))
     .addCase(A.setLoaderLaunches, (state, { payload }) => ({ ...state, loader: payload }))
     .addCase(A.cleanLaunchesData, () => initStoreState);
 });
