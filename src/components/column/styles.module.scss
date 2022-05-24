@@ -1,9 +1,11 @@
 .box {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   border-radius: 10px;
   padding: 10px;
-  min-height: 1000px;
-  height: fit-content;
+
+  .listParentContainer {
+    height: 700px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+  }
 }

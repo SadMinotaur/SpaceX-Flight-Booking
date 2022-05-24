@@ -3,8 +3,12 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Box } from "@mui/material";
 import { LaunchType } from "@store/launches/launchesTypes";
+import classNames from "classnames/bind";
 import React from "react";
+import { useVirtual } from "react-virtual";
 import styles from "./styles.module.scss";
+
+const cnb = classNames.bind(styles);
 
 interface Props {
   id: string;
@@ -13,7 +17,7 @@ interface Props {
   disabled?: boolean;
 }
 
-const stylesBox = {
+const stylesBox: React.CSSProperties = {
   border: "1px solid",
   borderColor: "text.primary"
 } as const;
@@ -25,6 +29,14 @@ export default function Column({
   disabled
 }: Readonly<Props>): React.ReactElement {
   const { setNodeRef } = useDroppable({ id, disabled });
+  const parentRef = React.useRef(null);
+
+  const rowVirtualizer = useVirtual({
+    size: items.length,
+    parentRef,
+    estimateSize: React.useCallback(() => 305, []),
+    overscan: 2
+  });
 
   return (
     <SortableContext
@@ -34,14 +46,38 @@ export default function Column({
       disabled={disabled}
     >
       <Box className={styles.box} sx={stylesBox} ref={setNodeRef}>
-        {showSkeletons
-          ? [...Array(3)].map(() => {
-              const key = `skeleton${Math.random()}`;
-              return <TableCard key={key} id={key} disableDrag />;
-            })
-          : items.map((item) => (
-              <TableCard disableDrag={disabled} key={item.id} id={item.id} cardInfo={item} />
-            ))}
+        {showSkeletons &&
+          [...Array(2)].map(() => {
+            const key = `skeleton${Math.random()}`;
+            return <TableCard key={key} id={key} disableDrag />;
+          })}
+        {!showSkeletons && (
+          <div ref={parentRef} className={cnb("listParentContainer")}>
+            <div
+              style={{
+                height: `${rowVirtualizer.totalSize}px`,
+                width: "100%",
+                position: "relative"
+              }}
+            >
+              {rowVirtualizer.virtualItems.map((virtualRow) => {
+                const item = items[virtualRow.index];
+                return (
+                  <TableCard
+                    disableDrag={disabled}
+                    key={item.id}
+                    id={item.id}
+                    cardInfo={item}
+                    style={{
+                      position: "absolute",
+                      top: virtualRow.start
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
       </Box>
     </SortableContext>
   );

@@ -1,12 +1,13 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Button, CardMedia, Skeleton, Typography } from "@mui/material";
+import { Button, CardMedia, Typography } from "@mui/material";
 import Card from "@mui/material/Card";
 import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import { LaunchType } from "@store/launches/launchesTypes";
 import classNames from "classnames/bind";
 import React from "react";
+import MemoizedSkeleton from "./MemoizedSkeleton";
 import styles from "./styles.module.scss";
 
 const cnb = classNames.bind(styles);
@@ -18,6 +19,15 @@ interface Props {
   style?: React.CSSProperties;
 }
 
+const convertDate = (date_utc?: string): string => {
+  if (!date_utc) return "";
+  return new Date(date_utc).toLocaleDateString("en", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric"
+  });
+};
+
 export default function TableCard({
   id,
   cardInfo,
@@ -28,16 +38,7 @@ export default function TableCard({
     id,
     disabled: disableDrag
   });
-
-  const showSkeleton = !!cardInfo;
-  const convertDate = (): string => {
-    if (!cardInfo) return "";
-    return new Date(cardInfo.date_utc).toLocaleDateString("en", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric"
-    });
-  };
+  const showSkeleton = !cardInfo;
 
   return (
     <Card
@@ -53,34 +54,24 @@ export default function TableCard({
       {...listeners}
     >
       {showSkeleton ? (
-        <CardMedia
-          component='img'
-          height='140'
-          image={cardInfo.links.patch.small || "https://via.placeholder.com/140x370"}
-          alt='flight patch'
-        />
+        <MemoizedSkeleton />
       ) : (
-        <Skeleton variant='rectangular' width='100%' height={140} />
+        <>
+          <CardMedia
+            component='img'
+            height='140'
+            image={cardInfo.links.patch.small || "https://via.placeholder.com/350x140"}
+            alt={`${cardInfo?.name} flight patch`}
+          />
+          <CardContent>
+            <Typography variant='h4'>{cardInfo?.name}</Typography>
+            <Typography variant='h6'>Date: {convertDate(cardInfo.date_utc)}</Typography>
+          </CardContent>
+          <CardActions className={cnb("alignRight")}>
+            <Button color='secondary'>Open</Button>
+          </CardActions>
+        </>
       )}
-      <CardContent>
-        {showSkeleton ? (
-          <Typography variant='h4'>{cardInfo?.name}</Typography>
-        ) : (
-          <Skeleton variant='text' height={40} />
-        )}
-        {showSkeleton ? (
-          <Typography variant='h6'>Date: {convertDate()}</Typography>
-        ) : (
-          <Skeleton variant='text' height={32} />
-        )}
-      </CardContent>
-      <CardActions className={cnb("alignRight")}>
-        {showSkeleton ? (
-          <Button color='secondary'>Open</Button>
-        ) : (
-          <Skeleton variant='rectangular' width={62} height={32} />
-        )}
-      </CardActions>
     </Card>
   );
 }
