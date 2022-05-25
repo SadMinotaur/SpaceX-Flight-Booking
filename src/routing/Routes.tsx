@@ -1,22 +1,21 @@
-import SuspenseComponent from "@components/common/suspense";
 import Header from "@components/header";
+import SuspenseComponent from "@components/suspense";
 import React from "react";
-import { HashRouter, Route, Routes } from "react-router-dom";
-import { home, cardPage } from "./screns";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-const MainColumns = React.lazy(() => import("@src/pages/MainColumns"));
-const CardPage = React.lazy(() => import("@src/pages/CardPage"));
+const Table = React.lazy(() => import("@src/pages/Table"));
+const CardPage = React.lazy(() => import("@src/pages/FlightPage"));
 
 export default function MainRouter(): React.ReactElement {
   return (
-    <HashRouter basename={process.env.PUBLIC_URL}>
+    <BrowserRouter>
       <Header />
       <React.Suspense fallback={<SuspenseComponent />}>
         <Routes>
-          <Route path={home} element={<MainColumns />} />
-          <Route path={cardPage} caseSensitive element={<CardPage />} />
+          <Route path='/' element={<Table />} />
+          <Route path='card/:id' element={<CardPage />} caseSensitive />
         </Routes>
       </React.Suspense>
-    </HashRouter>
+    </BrowserRouter>
   );
 }

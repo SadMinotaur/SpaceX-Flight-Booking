@@ -1,22 +1,27 @@
-import { createTheme, ThemeProvider } from "@mui/material";
-import { store } from "@store/store";
+import Suspense from "@components/suspense";
+import { Box, createTheme, ThemeProvider } from "@mui/material";
+import { persistor, RootState } from "@store/store";
 import React from "react";
-import { Provider } from "react-redux";
+import { useSelector } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 import MainRouter from "./routing/Routes";
 
 function App(): React.ReactElement {
+  const mode = useSelector((state: RootState) => state.theme);
+  const theme = createTheme({ palette: { mode } });
   return (
-    <React.StrictMode>
-      <Provider store={store}>
-        <ThemeProvider
-          theme={createTheme({
-            palette: {}
-          })}
+    <PersistGate loading={<Suspense />} persistor={persistor}>
+      <ThemeProvider theme={theme}>
+        <Box
+          className='boxStyle'
+          sx={{
+            bgcolor: "background.default"
+          }}
         >
           <MainRouter />
-        </ThemeProvider>
-      </Provider>
-    </React.StrictMode>
+        </Box>
+      </ThemeProvider>
+    </PersistGate>
   );
 }
 

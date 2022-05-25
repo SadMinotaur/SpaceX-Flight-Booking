@@ -1,5 +1,12 @@
 module.exports = {
-  extends: ["airbnb", "airbnb-typescript", "airbnb/hooks", "plugin:@typescript-eslint/recommended", "prettier", "plugin:prettier/recommended", "plugin:storybook/recommended"],
+  extends: [
+    "airbnb",
+    "airbnb-typescript",
+    "airbnb/hooks",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "plugin:prettier/recommended"
+  ],
   plugins: ["react", "prettier"],
   env: {
     browser: true,
@@ -24,6 +31,8 @@ module.exports = {
     "import/prefer-default-export": "warn",
     "react/jsx-filename-extension": "warn",
     "react/jsx-props-no-spreading": "warn",
-    "global-require": "warn"
+    "global-require": "warn",
+    "react/require-default-props": "off",
+    "react/jsx-no-bind": "off"
   }
 };

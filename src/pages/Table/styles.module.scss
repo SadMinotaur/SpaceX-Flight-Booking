@@ -1,0 +1,16 @@
+.tableContainer {
+  margin: 0 auto;
+  max-width: $maxWidth;
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: min-content 1fr;
+  gap: 10px;
+  grid-template-areas:
+    ". . ."
+    ". . .";
+
+  .columnHeader {
+    text-align: center;
+  }
+}
