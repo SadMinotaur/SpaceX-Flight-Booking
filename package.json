@@ -1,7 +1,7 @@
 {
-  "name": "react-redux-saga-template",
+  "name": "spacex-flight-booking",
   "version": "1.0.0",
-  "description": "Project react app",
+  "description": "",
   "private": true,
   "homepage": ".",
   "engines": {
@@ -9,8 +9,8 @@
   },
   "scripts": {
     "start": "npx webpack serve",
-    "prodmod": "npx webpack serve --mode=production",
-    "build": "npx webpack --mode=production",
+    "prodmod": "NODE_ENV=production npx webpack serve --mode=production",
+    "build": "NODE_ENV=production npx webpack --mode=production",
     "lint": "eslint src/**/*.ts{,x} --ignore-pattern node_modules",
     "prettier": "prettier --write .",
     "types": "tsc --noEmit && eslint -c .eslintrc.js",

@@ -155,6 +155,7 @@ export interface BookRequest {
   type: LaunchesBookTypes;
   id: string;
   cardsState: CardsState;
+  callBack?: () => void;
 }
 
 export type LoaderTypes = keyof LaunchesState | "single";

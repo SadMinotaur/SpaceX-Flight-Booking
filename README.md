@@ -1,23 +1,9 @@
-# React-Redux-Saga-Template
+Deployed version: https://spacex-flight-booking.web.app/
 
-Based on https://github.com/Revolt9k/react-redux-template.
+App uses yarn with pnp
 
-#### This template uses:
+To launch application:
 
-- React
-- Redux
-- Redux-Saga
-- TypeScript
-- Scss
-- Airbnb eslint setup and basic prettier config
-- Yarn PnP
-- Husky
-
-#### Webpack build includes:
-
-- Aliases
-- Chunk splitting
-- Hot reload
-- Analyzing bundle size tool
-
-yarn dlx @yarnpkg/sdks vscode
+1. Fetch packages `yarn`
+2. Install sdk for your ide (for vscode `yarn dlx @yarnpkg/sdks vscode`)
+3. Start application `yarn start`

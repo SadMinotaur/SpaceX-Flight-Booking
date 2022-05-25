@@ -19,8 +19,10 @@ function* getLaunches() {
 
 function* bookLaunch({ payload }: PayloadAction<T.BookRequest>) {
   try {
-    const { id, type, cardsState } = payload;
-    yield put(A.setLoaderLaunches(["booked", "upcoming"]));
+    const { id, type, cardsState, callBack } = payload;
+    if (type === T.LaunchesBookTypes.cancel) {
+      yield put(A.setLoaderLaunches(["upcoming"]));
+    }
     yield call(R.bookLaunchRequest, { id, type });
     yield put(
       A.setLaunches({
@@ -29,6 +31,7 @@ function* bookLaunch({ payload }: PayloadAction<T.BookRequest>) {
         booked: cardsState.booked
       })
     );
+    callBack?.();
   } catch (e) {
     if (e instanceof Error) yield put(A.bookLaunchesActionFailure(e.message));
   } finally {

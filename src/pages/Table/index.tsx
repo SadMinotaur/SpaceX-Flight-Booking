@@ -80,10 +80,10 @@ export default function Table(): React.ReactElement {
       bookLaunchesActionRequest({
         type: LaunchesBookTypes.book,
         id,
-        cardsState
+        cardsState,
+        callBack: () => setSnackbarState(true)
       })
     );
-    setSnackbarState(true);
   };
 
   const closeSnackbar = (): void => {
