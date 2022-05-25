@@ -1,5 +1,5 @@
 import { PayloadAction } from "@reduxjs/toolkit";
-import { call, put, takeLatest, takeLeading } from "redux-saga/effects";
+import { call, put, takeLeading } from "redux-saga/effects";
 import * as R from "@utils/api/requests";
 import * as A from "./launchesActions";
 import * as T from "./launchesTypes";
@@ -40,7 +40,7 @@ function* getLaunch({ payload }: PayloadAction<string>) {
   try {
     yield put(A.setLoaderLaunches(["single"]));
     const launch = yield call(R.getLaunchRequest, payload);
-    yield put(A.getLaunchActionSucces(launch));
+    yield put(A.getLaunchActionSuccess(launch));
   } catch (e) {
     if (e instanceof Error) yield put(A.getLaunchActionFailure(e.message));
   } finally {

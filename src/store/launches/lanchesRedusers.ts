@@ -1,8 +1,8 @@
 import { createReducer } from "@reduxjs/toolkit";
 import * as A from "./launchesActions";
-import * as T from "./launchesTypes";
+import { LaunchesInfo } from "./launchesTypes";
 
-export const initStoreState: T.LaunchesInfo = {
+export const initStoreState: LaunchesInfo = {
   past: [],
   upcoming: [],
   booked: [],
@@ -16,7 +16,10 @@ export default createReducer(initStoreState, (builder) => {
       ...state,
       ...payload
     }))
-    .addCase(A.getLaunchActionSucces, (state, { payload }) => ({ ...state, singleFlight: payload }))
+    .addCase(A.getLaunchActionSuccess, (state, { payload }) => ({
+      ...state,
+      singleFlight: payload
+    }))
     .addCase(A.setLoaderLaunches, (state, { payload }) => ({ ...state, loader: payload }))
     .addCase(A.cleanLaunchesData, () => initStoreState);
 });

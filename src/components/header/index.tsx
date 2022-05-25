@@ -1,7 +1,8 @@
 import Brightness5Icon from "@mui/icons-material/Brightness5";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import HomeIcon from "@mui/icons-material/Home";
-import { Button, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
 import { RootState } from "@store/store";
 import { AppThemes, setAppTheme } from "@store/theme";
 import classNames from "classnames/bind";
@@ -35,17 +36,17 @@ export default function Header(): React.ReactElement {
       <Typography variant='h3' sx={iconColor}>
         Explore the space
       </Typography>
-      <Button onClick={onThemeSwitch}>
+      <IconButton onClick={onThemeSwitch}>
         {theme === AppThemes.dark ? (
           <Brightness5Icon fontSize='large' sx={iconColor} />
         ) : (
           <Brightness7Icon fontSize='large' sx={iconColor} />
         )}
-      </Button>
+      </IconButton>
       {outsideHome && (
-        <Button onClick={onEnterClick}>
+        <IconButton onClick={onEnterClick}>
           <HomeIcon fontSize='large' sx={iconColor} />
-        </Button>
+        </IconButton>
       )}
     </header>
   );

@@ -10,7 +10,7 @@ export const bookLaunchesActionFailure = createAction<string>("BOOK_LAUNCH_FAILU
 export const setLaunches = createAction<LaunchesState>("SET_LAUNCHES");
 
 export const getLaunchActionRequest = createAction<string>("GET_LAUNCH_REQUEST");
-export const getLaunchActionSucces = createAction<LaunchType>("GET_LAUNCH_SUCCESS");
+export const getLaunchActionSuccess = createAction<LaunchType>("GET_LAUNCH_SUCCESS");
 export const getLaunchActionFailure = createAction<string>("GET_LAUNCH_FAILURE");
 
 export const cleanLaunchesData = createAction<void>("CLEAN_LAUNCHES_DATA");

@@ -4,7 +4,7 @@ import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 const Table = React.lazy(() => import("@src/pages/Table"));
-const CardPage = React.lazy(() => import("@src/pages/CardPage"));
+const CardPage = React.lazy(() => import("@src/pages/FlightPage"));
 
 export default function MainRouter(): React.ReactElement {
   return (
